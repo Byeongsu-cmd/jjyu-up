@@ -17,19 +17,23 @@ public class Schedule extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(length = 30, nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(length = 200, nullable = false)
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY) // 일단 데이터 안가져올께 즉, 필요할 때만 가져올께
     @JoinColumn(name = "user_id", nullable = false) // null이 가능하지 않다.
     private User user;
 
-    public Schedule(String title, String content, User user) {
+    public Schedule(String title, String content) {
         this.title = title;
         this.content = content;
-        this.user = user;
+    }
+
+    public void updateSchedule(String title, String content) {
+        this.title = title;
+        this.content = content;
     }
 }
