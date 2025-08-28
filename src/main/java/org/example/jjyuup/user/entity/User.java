@@ -15,16 +15,22 @@ public class User extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(length = 30, nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true) // 이메일은 중복되면 안되니깐 UK
+    @Column(length = 30, nullable = false, unique = true) // 이메일은 중복되면 안되니깐 UK
     private String email;
 
-    @Column(nullable = false)
+    @Column(length = 100, nullable = false)
     private String password;
 
     public User(String name, String email, String password) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+    }
+
+    public void updateUser(String name, String email, String password) {
         this.name = name;
         this.email = email;
         this.password = password;

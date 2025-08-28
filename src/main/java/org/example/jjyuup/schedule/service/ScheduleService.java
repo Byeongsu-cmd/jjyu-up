@@ -17,6 +17,12 @@ import java.util.List;
 public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
 
+    /**
+     * - [ ]  일정을 생성, 조회, 수정, 삭제할 수 있습니다.
+     * - [ ]  일정은 아래 필드를 가집니다.
+     *     - [ ]  `작성 유저명`, `할일 제목`, `할일 내용`, `작성일`, `수정일` 필드
+     *     - [ ]  `작성일`, `수정일` 필드는 `JPA Auditing`을 활용합니다.
+     */
     /*
     insert 문의 기본 역할은 데이터 삽입(추가,입력),
     추가 역할은 데이터 복사/통합
