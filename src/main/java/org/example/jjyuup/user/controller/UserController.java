@@ -48,6 +48,6 @@ public class UserController {
             @PathVariable Long userId
     ){
         userService.deleteById(userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }

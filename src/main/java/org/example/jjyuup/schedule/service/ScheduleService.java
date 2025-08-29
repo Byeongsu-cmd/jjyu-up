@@ -7,7 +7,6 @@ import org.example.jjyuup.schedule.entity.Schedule;
 import org.example.jjyuup.schedule.repository.ScheduleRepository;
 import org.example.jjyuup.user.entity.User;
 import org.example.jjyuup.user.repository.UserRepository;
-import org.example.jjyuup.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,16 +27,23 @@ public class ScheduleService {
      * - [ ]  `작성 유저명`, `할일 제목`, `할일 내용`, `작성일`, `수정일` 필드
      * - [ ]  `작성일`, `수정일` 필드는 `JPA Auditing`을 활용합니다.
      */
-    /*
-    insert 문의 기본 역할은 데이터 삽입(추가,입력),
-    추가 역할은 데이터 복사/통합
 
-    insert
-    into
-        schedules
-        (content, create_at, modified_at, title)
-    values
-        (?, ?, ?, ?)
+    /**
+     * insert 문의 기본 역할은 데이터 삽입(추가,입력),
+     * 추가 역할은 데이터 복사/통합
+     * <p>
+     * 유저의 아디를 먼저 찾고
+     * select *
+     * from users
+     * where id =?
+     * <p>
+     * 일정을 등록
+     * insert
+     * into
+     * schedules
+     * (content, create_at, modified_at, title)
+     * values
+     * (?, ?, ?, ?)
      */
     // 일정 등록
     public ScheduleResponseDto save(Long userId, ScheduleRequestDto scheduleRequestDto) {
@@ -63,9 +69,19 @@ public class ScheduleService {
         );
     }
 
-    /*
-    select *
-    from schedule
+    /**
+     * 유저 아이디 값을 받았을 경우
+     * select *
+     * from users
+     * where id=?
+     * <p>
+     * select *
+     * from schedules s left join users u on s.id = u.id
+     * where u.id = ?;
+     * <p>
+     * 유저 아이디 값이 없을 경우
+     * select *
+     * from schedules
      */
     // 일정 조회
     @Transactional(readOnly = true)
@@ -95,10 +111,10 @@ public class ScheduleService {
         return scheduleResponse;
     }
 
-    /*
-    select *
-    from schedule
-    where id=?
+    /**
+     * select *
+     * from schedule
+     * where id=?
      */
     // 일정 단건 조회
     // 단건 조회에 굳이? 유저 아이디가 필요할까? 일정 조회할 때는 검증을 제외하도록 하자
@@ -119,13 +135,27 @@ public class ScheduleService {
         );
     }
 
-    /*
-    update schedules // 일정 대상으로 수정
-    set content=?, // 업데이트 할 내용을 작성
-        modified_at=?,
-        title=?
-    where id=? // 입력 받은 아이디에 대한
+    /**
+     * select *
+     * from users
+     * where id=?;
+     * <p>
+     * select *
+     * from schedules
+     * where id=?;
+     * <p>
+     * update schedules
+     * set content=?, // 업데이트 할 내용을 작성
+     * modified_at=?,
+     * title=?
+     * user_id=?
+     * where id=? // 일정 아이디
      */
+
+    /*
+     더티체킹이란 영속성 컨텍스트가 관리하는 엔티티의 변경 사항을 감지하고, 트랜잭션이 끝날 때 자동으로 DB에 반영하는 것이다.
+     DB에 update sql을 날려 실제 테이블의 데이터까지 갱신한다는 것이 핵심!!
+    */
     // 일정 수정
     public ScheduleResponseDto update(Long userId, Long id, ScheduleRequestDto scheduleRequestDto) {
         if (userId != null) { // 유저 아이디를 입력했다면..
@@ -142,11 +172,6 @@ public class ScheduleService {
             throw new IllegalArgumentException("해당 일정의 작성자가 아님으로 수정할 수 없습니다!");
         }
 
-        // 더티체킹, 변경감지 - 영속성 컨텍스트의 기능 중 하나
-        /*
-        더티체킹이란 영속성 컨텍스트가 관리하는 엔티티의 변경 사항을 감지하고, 트랜잭션이 끝날 때 자동으로 DB에 반영하는 것이다.
-        DB에 update sql을 날려 실제 테이블의 데이터까지 갱신한다는 것이 핵심!!
-         */
         schedule.updateSchedule(
                 scheduleRequestDto.getTitle(),
                 scheduleRequestDto.getContent()
@@ -161,10 +186,22 @@ public class ScheduleService {
         );
     }
 
-    /*
-    select *
-    from schedule
-    where id = ?
+    /**
+     * select *
+     * from users
+     * where id=?;
+     * <p>
+     * select *
+     * from schedules
+     * where id=?;
+     * <p>
+     * select *
+     * from schedules s left join users u on s.id = u.id
+     * where u.id = ? and s.id
+     * <p>
+     * delete
+     * from schedule
+     * where id=?;
      */
     // 일정 삭제
     public void deleteSchedule(Long userId, Long id) {
@@ -177,10 +214,6 @@ public class ScheduleService {
         if (!Objects.equals(userId, schedule.getUser().getId())) {
             throw new IllegalArgumentException("작성한 유저가 아니라 삭제가 불가능합니다!");
         }
-        ;
         scheduleRepository.deleteByUserIdAndId(userId, id);
     }
-    /*
-       jpa Repository sql 쿼리문에 대해 머릿속에 그려지기 전까지 주석으로 작성해보기
-     */
 }

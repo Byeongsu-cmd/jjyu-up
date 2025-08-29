@@ -1,6 +1,5 @@
 package org.example.jjyuup.user.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.example.jjyuup.user.dto.UserRequestDto;
 import org.example.jjyuup.user.dto.UserResponseDto;
@@ -27,6 +26,12 @@ public class UserService {
      * - [ ]  일정은 이제 `작성 유저명` 필드 대신 `유저 고유 식별자` 필드를 가집니다.
      */
 
+    /**
+     *  insert into users
+     *  (created_at, email, modified_at, name, password)
+     *  values
+     *  (?, ?, ?, ?, ?)
+     */
     // 유저 등록
     public UserResponseDto create(UserRequestDto userRequestDto) {
         User user = new User(
@@ -44,6 +49,10 @@ public class UserService {
         );
     }
 
+    /**
+     * select *
+     * from users
+     */
     // 유저 전체 조회
     @Transactional(readOnly = true)
     public List<UserResponseDto> findAll() {
@@ -62,6 +71,11 @@ public class UserService {
         return userResponses;
     }
 
+    /**
+     * select *
+     * from users
+     * where id=?
+     */
     // 유저 단건 조회
     @Transactional(readOnly = true)
     public UserResponseDto findById(Long id) {
@@ -78,6 +92,15 @@ public class UserService {
         );
     }
 
+    /**
+     * update users
+     * set
+     *      email=?,
+     *      modified_at=?,
+     *      name=?,
+     *      password=?
+     * where id=?
+     */
     // 유저 정보 수정
     public UserResponseDto update(Long id, UserRequestDto userRequestDto) {
         User user = userRepository.findById(id).orElseThrow(
@@ -99,6 +122,15 @@ public class UserService {
         );
     }
 
+    /**
+     * select *
+     * from users
+     * where id=?
+     *
+     * delete
+     * from users
+     * where id=?
+     */
     // 유저 정보 삭제
     public void deleteById(Long id) {
         User user = userRepository.findById(id).orElseThrow(
