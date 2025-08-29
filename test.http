@@ -3,8 +3,8 @@ POST http://localhost:8080/users
 Content-Type: application/json
 
 {
-  "name": "두부",
-  "email": "tofu@jjyu.up",
+  "name": "두부1",
+  "email": "tofu1@jjyu.up",
   "password": "1234"
 }
 
@@ -20,30 +20,30 @@ Content-Type: application/json
 
 {
   "name": "두부1",
-  "email": "tofu1@jjyu.up",
+  "email": "tofu@jjyu.up",
   "password": "1234"
 }
 
 ### 유저 정보 삭제
-DELETE http://localhost:8080/users/1
+DELETE http://localhost:8080/users/2
 
 ### 게시글 등록
-POST http://localhost:8080/schedules
+POST http://localhost:8080/users/2/schedules
 Content-Type: application/json
 
 {
-  "title": "좋은 아침",
+  "title": "좋은 아침1",
   "content": "안녕하세요"
 }
 
-### 게시글 전체 조회
-GET http://localhost:8080/schedules
+### 게시글 전체 조회 // 이거
+GET http://localhost:8080/users/schedules?userId=2
 
 ### 게시글 단건 조회
-GET http://localhost:8080/schedules/1
+GET http://localhost:8080/users/schedules/2
 
 ### 게시글 수정
-PUT http://localhost:8080/schedules/1
+PUT http://localhost:8080/users/1/schedules/3
 Content-Type: application/json
 
 {
@@ -52,4 +52,4 @@ Content-Type: application/json
 }
 
 ### 게시글 삭제
-DELETE http://localhost:8080/schedules/1
+DELETE http://localhost:8080/users/1/schedules/1

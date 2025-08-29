@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor // final 필드의 생성자 생성하는 기능 밖에 없다.
-@RequestMapping("/schedules")
+@RequestMapping("/users")
 public class ScheduleController {
     private final ScheduleService scheduleService;
 
@@ -31,21 +31,24 @@ public class ScheduleController {
 //    public ScheduleController(){
 //    }
 
-    @PostMapping
+    @PostMapping("/{userId}/schedules")
     public ResponseEntity<ScheduleResponseDto> save(
+            @PathVariable Long userId,
             @Valid @RequestBody ScheduleRequestDto scheduleRequestDto
     ) {
         // 201 상태코드
-        return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.save(scheduleRequestDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.save(userId,scheduleRequestDto));
     }
 
-    @GetMapping
-    public ResponseEntity<List<ScheduleResponseDto>> findAll() {
+    @GetMapping("/schedules")
+    public ResponseEntity<List<ScheduleResponseDto>> findAll(
+            @RequestParam(required = false) Long userId // 있을 수도 있고 없을 수도 있다.
+    ) {
         // 200 상태코드
-        return ResponseEntity.ok(scheduleService.findAll());
+        return ResponseEntity.ok(scheduleService.findAll(userId));
     }
 
-    @GetMapping("/{scheduleId}")
+    @GetMapping("/schedules/{scheduleId}")
     public ResponseEntity<ScheduleResponseDto> findById(
             @PathVariable Long scheduleId
     ) {
@@ -53,20 +56,22 @@ public class ScheduleController {
         return ResponseEntity.ok(scheduleService.findById(scheduleId));
     }
 
-    @PutMapping("/{scheduleId}")
+    @PutMapping("/{userId}/schedules/{scheduleId}")
     public ResponseEntity<ScheduleResponseDto> update(
+            @PathVariable Long userId,
             @PathVariable Long scheduleId,
             @Valid @RequestBody ScheduleRequestDto scheduleRequestDto
     ){
         // 200 상태코드
-        return ResponseEntity.ok(scheduleService.update(scheduleId, scheduleRequestDto));
+        return ResponseEntity.ok(scheduleService.update(userId,scheduleId, scheduleRequestDto));
     }
 
-    @DeleteMapping("/{scheduleId}")
-    public ResponseEntity<Void> deleteById(
+    @DeleteMapping("/{userId}/schedules/{scheduleId}")
+    public ResponseEntity<Void> deleteSchedule(
+            @PathVariable Long userId,
             @PathVariable Long scheduleId
     ){
-        scheduleService.deleteById(scheduleId);
+        scheduleService.deleteSchedule(userId,scheduleId);
         // 204 상태코드
         return ResponseEntity.noContent().build();
     }
