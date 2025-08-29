@@ -23,32 +23,32 @@ api 명세서
 
 테이블 명세서
 
-| 테이블(User) | 컴럼 | 타입 | 제약 | 설명 |
-| --- | --- | --- | --- | --- |
-| ID | id | BIGINT | PK | 유저 ID |
-| name | name | VARCHAR(30) | Not Null | 유저명 |
-| email | email | VARCHAR(30) | UK | 이메일 |
-| password | password | VARCHAR(100) | Not Null | 비밀번호 |
-| createdAt | created_At | DATETIME | Not Null | 생성일 |
+| 테이블(users) | 컴럼 | 타입 | 제약       | 설명 |
+|------------| --- | --- |----------| --- |
+| ID         | id | BIGINT | PK       | 유저 ID |
+| name       | name | VARCHAR(30) | Not Null | 유저명 |
+| email      | email | VARCHAR(30) | UK,Not Null  | 이메일 |
+| password   | password | VARCHAR(100) | Not Null | 비밀번호 |
+| createdAt  | created_At | DATETIME | Not Null | 생성일 |
 | modifiedAt | modified_At | DATETIME | Not Null | 수정일 |
 
-| 테이블(Schedule) | 컴럼 | 타입 | 제약 | 설명 |
-| --- | --- | --- | --- | --- |
-| ID | id | BIGINT | PK | 일정 ID |
-| userId | user_id | BIGINT | FK | 유저 ID |
-| title | title | VARCHAR(30) | Not Null | 일정 제목 |
-| content | content | VARCHAR(200) | Not Null | 일정 내용 |
-| createdAt | created_At | DATETIME | Not Null | 생성일 |
-| modifiedAt | modified_At | DATETIME | Not Null | 수정일 |
+| 테이블(schedules) | 컴럼 | 타입 | 제약 | 설명 |
+|----------------| --- | --- | --- | --- |
+| ID             | id | BIGINT | PK | 일정 ID |
+| userId         | user_id | BIGINT | FK, Not Null  | 유저 ID |
+| title          | title | VARCHAR(30) | Not Null | 일정 제목 |
+| content        | content | VARCHAR(200) | Not Null | 일정 내용 |
+| createdAt      | created_At | DATETIME | Not Null | 생성일 |
+| modifiedAt     | modified_At | DATETIME | Not Null | 수정일 |
 
-| 테이블(Comment) | 컴럼 | 타입 | 제약 | 설명 |
-| --- | --- | --- | --- | --- |
-| ID | id | BIGINT | PK | 댓글 ID |
-| userId | user_id | BIGINT | FK | 유저 ID |
-| scheduleId | schedule_id | BIGINT | FK | 일정 ID |
-| content | content | VARCHAR(100) | Not Null | 댓글 내용 |
-| createdAt | created_At | DATETIME | Not Null | 생성일 |
-| modifiedAt | modified_At | DATETIME | Not Null | 수정일 |
+| 테이블(comments) | 컴럼 | 타입 | 제약           | 설명 |
+|---------------| --- | --- |--------------| --- |
+| ID            | id | BIGINT | PK           | 댓글 ID |
+| userId        | user_id | BIGINT | FK, Not Null   | 유저 ID |
+| scheduleId    | schedule_id | BIGINT | FK, Not Null | 일정 ID |
+| content       | content | VARCHAR(100) | Not Null     | 댓글 내용 |
+| createdAt     | created_At | DATETIME | Not Null     | 생성일 |
+| modifiedAt    | modified_At | DATETIME | Not Null     | 수정일 |
 
 erd
 ![img.png](img.png)
