@@ -27,6 +27,8 @@ public class Schedule extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false) // null이 가능하지 않다.
     private User user;
 
+    // 일정 시작 날짜 및 시간으로 정해볼까??..
+
     public Schedule(String title, String content,User user) {
         this.title = title;
         this.content = content;

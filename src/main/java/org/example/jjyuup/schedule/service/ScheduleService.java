@@ -7,8 +7,11 @@ import org.example.jjyuup.schedule.entity.Schedule;
 import org.example.jjyuup.schedule.repository.ScheduleRepository;
 import org.example.jjyuup.user.entity.User;
 import org.example.jjyuup.user.repository.UserRepository;
+import org.hibernate.annotations.NotFound;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +53,9 @@ public class ScheduleService {
         User user = userRepository.findById(userId).orElseThrow( // 유저 객체를 생성 후 유저 repository에 있는 유저의 정보를 가져온다.
                 () -> new IllegalArgumentException("해당 유저는 존재하지 않습니다!") // 없다면 예외 처리
         );
+        if (user.isDeleted()) {
+            throw new IllegalStateException("삭제된 유저라 게시글을 생성할 수 없습니다!");
+        }
 
         Schedule schedule = new Schedule(
                 scheduleRequestDto.getTitle(),
@@ -88,13 +94,18 @@ public class ScheduleService {
     public List<ScheduleResponseDto> findAll(Long userId) {
 
         List<Schedule> schedules;
-        if (userId != null) { // 유저 아이디를 입력했다면..
-            userRepository.findById(userId).orElseThrow( // 유저 객체를 생성 후 유저 repository에 있는 유저의 정보를 가져온다.
+
+        if (userId == null) { // 아이디를 입력하지 않았다면..
+            schedules = scheduleRepository.findAll();
+        } else { // 아이디를 입력했다면..
+            User user = userRepository.findById(userId).orElseThrow( // 이전에 생성이 한 번이라도 되었던 아이디인지 검증
                     () -> new IllegalArgumentException("해당 유저는 존재하지 않습니다!") // 없다면 예외 처리
             );
-            schedules = scheduleRepository.findAllByUserId(userId);
-        } else {
-            schedules = scheduleRepository.findAll();
+            if (user.isDeleted()) { // 삭제된 아이디라면..
+                throw new IllegalStateException("게시글을 찾을 수 없습니다..");
+            } else {
+                schedules = scheduleRepository.findAllByUserId(user.getId());
+            }
         }
 
         List<ScheduleResponseDto> scheduleResponse = new ArrayList<>();
@@ -124,6 +135,9 @@ public class ScheduleService {
         Schedule schedule = scheduleRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("찾을 수 없는 게시글입니다.")
         );
+        if (schedule.getUser().isDeleted()) { // 삭제된 아이디라면..
+            throw new IllegalStateException("일정을 조회할 수가 없습니다.");
+        }
 
         return new ScheduleResponseDto(
                 schedule.getId(),
@@ -158,14 +172,17 @@ public class ScheduleService {
     */
     // 일정 수정
     public ScheduleResponseDto update(Long userId, Long id, ScheduleRequestDto scheduleRequestDto) {
-        if (userId != null) { // 유저 아이디를 입력했다면..
-            userRepository.findById(userId).orElseThrow( // 유저 객체를 생성 후 유저 repository에 있는 유저의 정보를 가져온다.
-                    () -> new IllegalArgumentException("해당 유저는 존재하지 않습니다!") // 없다면 예외 처리
-            );
+
+        User user = userRepository.findById(userId).orElseThrow( // 유저 객체를 생성 후 유저 repository에 있는 유저의 정보를 가져온다.
+                () -> new IllegalArgumentException("해당 유저는 존재하지 않습니다!") // 없다면 예외 처리
+        );
+
+        if (user.isDeleted()) { // 삭제된 유저라면...
+            throw new IllegalStateException("해당 게시글은 존재하지 않습니다.");
         }
         // 입력한 게시글의 아이디가 존재하지 않을 때
         Schedule schedule = scheduleRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("찾을 수 없는 게시글입니다.")
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "찾을 수 없는 게시글입니다.")
         );
 
         if (!Objects.equals(userId, schedule.getUser().getId())) {
@@ -205,15 +222,19 @@ public class ScheduleService {
      */
     // 일정 삭제
     public void deleteSchedule(Long userId, Long id) {
-        userRepository.findById(userId).orElseThrow(
+        User user = userRepository.findById(userId).orElseThrow(
                 () -> new IllegalArgumentException("존재하지 않는 유저입니다!")
         );
+        if (user.isDeleted()) { // 삭제된 유저라면...
+            throw new IllegalStateException("해당 게시글은 존재하지 않습니다.");
+        }
         Schedule schedule = scheduleRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("존재하지 않는 일정입니다!")
         );
         if (!Objects.equals(userId, schedule.getUser().getId())) {
             throw new IllegalArgumentException("작성한 유저가 아니라 삭제가 불가능합니다!");
         }
-        scheduleRepository.deleteByUserIdAndId(userId, id);
+//        scheduleRepository.deleteByUserIdAndId(userId, id);
+        schedule.softDelete(); // boolean 값을 true로 변환
     }
 }
