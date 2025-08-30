@@ -12,7 +12,7 @@ public class UserResponseDto {
     private final LocalDateTime createAt;
     private final LocalDateTime modifiedAt;
 
-    public UserResponseDto(Long id, String name, String email, LocalDateTime createAt, LocalDateTime modifiedAt) {
+    public UserResponseDto( Long id, String name, String email, LocalDateTime createAt, LocalDateTime modifiedAt) {
         this.id = id;
         this.name = name;
         this.email = email;

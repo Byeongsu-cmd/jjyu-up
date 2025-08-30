@@ -3,8 +3,8 @@ POST http://localhost:8080/users
 Content-Type: application/json
 
 {
-  "name": "두부1",
-  "email": "tofu1@jjyu.up",
+  "name": "두부",
+  "email": "tofu1111@jjyu.up",
   "password": "1234"
 }
 
@@ -12,7 +12,7 @@ Content-Type: application/json
 GET http://localhost:8080/users
 
 ### 유저 단건 조회
-GET http://localhost:8080/users/1
+GET http://localhost:8080/users/7
 
 ### 유저 정보 수정
 PUT http://localhost:8080/users/1
@@ -20,12 +20,18 @@ Content-Type: application/json
 
 {
   "name": "두부1",
-  "email": "tofu@jjyu.up",
+  "email": "tofu1111@jjyu.up",
   "password": "1234"
 }
 
 ### 유저 정보 삭제
-DELETE http://localhost:8080/users/1
+DELETE http://localhost:8080/users/7
+
+
+### 삭제된 유저 정보 복원
+POST http://localhost:8080/users/7/restoreUsers
+
+------------------------------------------------------------------------------------------
 
 ### 게시글 등록
 POST http://localhost:8080/users/1/schedules

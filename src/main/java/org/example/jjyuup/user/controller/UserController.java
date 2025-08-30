@@ -24,7 +24,8 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserResponseDto>> getAll() {
+    public ResponseEntity<List<UserResponseDto>> getAll(
+    ) {
         return ResponseEntity.ok(userService.findAll());
     }
 
@@ -39,15 +40,23 @@ public class UserController {
     public ResponseEntity<UserResponseDto> update(
             @PathVariable Long userId,
             @RequestBody UserRequestDto userRequestDto
-    ){
+    ) {
         return ResponseEntity.ok(userService.update(userId, userRequestDto));
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<UserResponseDto> delete(
+    public ResponseEntity<Void> delete(
             @PathVariable Long userId
-    ){
+    ) {
         userService.deleteById(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{userId}/restoreUsers")
+    public ResponseEntity<Void> restore(
+            @PathVariable Long userId
+    ){
+        userService.restore(userId);
+        return ResponseEntity.ok().build();
     }
 }

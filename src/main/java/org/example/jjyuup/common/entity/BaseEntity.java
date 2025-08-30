@@ -90,4 +90,16 @@ public class BaseEntity {
      * protected BaseEntity() {    // 외부에서 마음대로 생성 못 하도록 제한(JPA는 protected나 public 생성자만 필요)
      *    }    // JPA가 리플렉션을 통해 객체 생성 시 내부 필드를 채워줌 -> 그래서 new ...() 안 해도 됨
      */
+
+    // Soft Delete
+    @Column(name = "deleted",nullable = false)
+    private boolean deleted = false;
+
+    public void softDelete() {
+        this.deleted = true;
+    }
+
+    public void restore() { // 복원용
+        this.deleted = false;
+    }
 }
