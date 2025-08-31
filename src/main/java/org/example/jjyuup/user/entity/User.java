@@ -21,7 +21,7 @@ public class User extends BaseEntity {
     @Column(length = 30, nullable = false, unique = true) // 이메일은 중복되면 안되니깐 UK
     private String email;
 
-    @Column(length = 100, nullable = false)
+    @Column(length = 255, nullable = false) // 기본 값이지만 명시하면 좋다!
     private String password;
 
     public User(String name, String email, String password) {

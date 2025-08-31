@@ -2,6 +2,7 @@ package org.example.jjyuup.user.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.jjyuup.common.consts.Const;
 import org.example.jjyuup.user.dto.UserRequestDto;
 import org.example.jjyuup.user.dto.UserResponseDto;
 import org.example.jjyuup.user.service.UserService;
@@ -17,26 +18,16 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-    @PostMapping
-    public ResponseEntity<UserResponseDto> create(
-            @Valid @RequestBody UserRequestDto userRequestDto
-    ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(userRequestDto));
-    }
-
+    // 유저 전체 조회
     @GetMapping
     public ResponseEntity<List<UserResponseDto>> getAll(
+            @SessionAttribute(name = Const.SESSION_KEY) Long id, // 로그인 세션 키
+            @RequestParam(required = false) String name // 파람 값으로 유저 정보 조회
     ) {
-        return ResponseEntity.ok(userService.findAll());
+        return ResponseEntity.ok(userService.findUsers(id, name));
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserResponseDto> getById(
-            @PathVariable Long userId
-    ) {
-        return ResponseEntity.ok(userService.findById(userId));
-    }
-
+    // 유저 정보 수정
     @PutMapping("/{userId}")
     public ResponseEntity<UserResponseDto> update(
             @PathVariable Long userId,
@@ -45,6 +36,7 @@ public class UserController {
         return ResponseEntity.ok(userService.update(userId, userRequestDto));
     }
 
+    // 유저 정보 삭제
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> delete(
             @PathVariable Long userId
@@ -53,6 +45,7 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    // 삭제된 유저 정보 복원
     @PostMapping("/{userId}/restoreUsers")
     public ResponseEntity<Void> restore(
             @PathVariable Long userId

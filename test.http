@@ -1,35 +1,44 @@
-### 유저 등록
-POST http://localhost:8080/users
+### 회원가입
+POST http://localhost:8080/signup
 Content-Type: application/json
 
 {
-  "name": "두부",
-  "email": "tofu1111@jjyu.up",
-  "password": "1234"
+  "name": "엠씨지나",
+  "email": "MZ11@jjyu.up",
+  "password": "Abcd+234"
 }
 
-### 유저 전체 조회
-GET http://localhost:8080/users
+### 로그인
+POST http://localhost:8080/login
+Content-Type: application/json
 
-### 유저 단건 조회
-GET http://localhost:8080/users/7
+{
+  "email": "MZ11@jjyu.up",
+  "password": "Abcd+234"
+}
+
+### 로그아웃
+POST http://localhost:8080/logout
+
+### 유저 전체 조회 or 유저명 조회 (단건 조회)
+GET http://localhost:8080/users?name=엠씨지나
 
 ### 유저 정보 수정
-PUT http://localhost:8080/users/1
+PUT http://localhost:8080/users/3
 Content-Type: application/json
 
 {
   "name": "두부1",
-  "email": "tofu1111@jjyu.up",
-  "password": "1234"
+  "email": "tofu11111@jjyu.up",
+  "password": "Abcd+234"
 }
 
 ### 유저 정보 삭제
-DELETE http://localhost:8080/users/7
+DELETE http://localhost:8080/users/4
 
 
 ### 삭제된 유저 정보 복원
-POST http://localhost:8080/users/7/restoreUsers
+POST http://localhost:8080/users/4/restoreUsers
 
 ------------------------------------------------------------------------------------------
 
@@ -42,14 +51,14 @@ Content-Type: application/json
   "content": "안녕하세요"
 }
 
-### 게시글 전체 조회 // 이거
-GET http://localhost:8080/users/schedules
+### 게시글 전체 조회
+GET http://localhost:8080/users/schedules?userId=7
 
 ### 게시글 단건 조회
 GET http://localhost:8080/users/schedules/2
 
 ### 게시글 수정
-PUT http://localhost:8080/users/1/schedules/1
+PUT http://localhost:8080/users/7/schedules/1
 Content-Type: application/json
 
 {
