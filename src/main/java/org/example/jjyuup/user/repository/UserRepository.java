@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByDeletedFalse();
+
+    boolean existsByEmail (String email); // 입력한 이메일이 DB에 존재하는 지 여부 파악
 }

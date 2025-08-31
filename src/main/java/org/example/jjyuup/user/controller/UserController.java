@@ -1,5 +1,6 @@
 package org.example.jjyuup.user.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.jjyuup.user.dto.UserRequestDto;
 import org.example.jjyuup.user.dto.UserResponseDto;
@@ -18,7 +19,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponseDto> create(
-            @RequestBody UserRequestDto userRequestDto
+            @Valid @RequestBody UserRequestDto userRequestDto
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(userRequestDto));
     }
@@ -39,7 +40,7 @@ public class UserController {
     @PutMapping("/{userId}")
     public ResponseEntity<UserResponseDto> update(
             @PathVariable Long userId,
-            @RequestBody UserRequestDto userRequestDto
+            @Valid @RequestBody UserRequestDto userRequestDto
     ) {
         return ResponseEntity.ok(userService.update(userId, userRequestDto));
     }
