@@ -207,6 +207,7 @@ public class UserService {
             user.restore(); // 엔티티에 있는 restore 메서드를 호출하여 boolean 값을 false로 변환
             //아래의 코드를 작성하지 않으면 더티체킹
             //userRepository.save(user); // 변경된 정보 저장 (save의 merge 기능을 활용하여 적용할 수 있다.)
+            userRepository.save(user);
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제된 유저가 아닙니다.");
         }

@@ -7,7 +7,6 @@ import org.example.jjyuup.schedule.entity.Schedule;
 import org.example.jjyuup.schedule.repository.ScheduleRepository;
 import org.example.jjyuup.user.entity.User;
 import org.example.jjyuup.user.repository.UserRepository;
-import org.hibernate.annotations.NotFound;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,11 +50,8 @@ public class ScheduleService {
     // 일정 등록
     public ScheduleResponseDto save(Long userId, ScheduleRequestDto scheduleRequestDto) {
         User user = userRepository.findById(userId).orElseThrow( // 유저 객체를 생성 후 유저 repository에 있는 유저의 정보를 가져온다.
-                () -> new IllegalArgumentException("해당 유저는 존재하지 않습니다!") // 없다면 예외 처리
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저는 존재하지 않습니다!") // 없다면 예외 처리 404
         );
-        if (user.isDeleted()) {
-            throw new IllegalStateException("삭제된 유저라 게시글을 생성할 수 없습니다!");
-        }
 
         Schedule schedule = new Schedule(
                 scheduleRequestDto.getTitle(),
@@ -89,35 +85,39 @@ public class ScheduleService {
      * select *
      * from schedules
      */
-    // 일정 조회
+    // 일정 전체 조회  - 자신정보 모두 표시 남의 일정은 null로 설정, 삭제된 유저의 일정은 조회되지 않는다.
     @Transactional(readOnly = true)
     public List<ScheduleResponseDto> findAll(Long userId) {
 
-        List<Schedule> schedules;
-
-        if (userId == null) { // 아이디를 입력하지 않았다면..
-            schedules = scheduleRepository.findAll();
-        } else { // 아이디를 입력했다면..
-            User user = userRepository.findById(userId).orElseThrow( // 이전에 생성이 한 번이라도 되었던 아이디인지 검증
-                    () -> new IllegalArgumentException("해당 유저는 존재하지 않습니다!") // 없다면 예외 처리
-            );
-            if (user.isDeleted()) { // 삭제된 아이디라면..
-                throw new IllegalStateException("게시글을 찾을 수 없습니다..");
-            } else {
-                schedules = scheduleRepository.findAllByUserId(user.getId());
-            }
-        }
-
+        List<Schedule> schedules = scheduleRepository.findByDeletedFalse();
+//        List<Schedule> schedules = scheduleRepository.findAllByUserId(user.getId());
         List<ScheduleResponseDto> scheduleResponse = new ArrayList<>();
+
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "일정을 찾을 수 없습니다.")
+        );
         for (Schedule schedule : schedules) {
-            scheduleResponse.add(new ScheduleResponseDto(
-                    schedule.getId(),
-                    schedule.getUser().getId(),
-                    schedule.getTitle(),
-                    schedule.getContent(),
-                    schedule.getCreatedAt(),
-                    schedule.getModifiedAt()
-            ));
+            // softDelete가 true라면 일정을 조회할 수 없다. 삭제된 유저의 일정은 조회할 수 없다.
+            if (schedule.getUser().isDeleted()) { // 일정의 유저의 삭제여부를 확인해야 한다..
+                continue;
+            } // 유저가 삭제되지 않았다면..
+            if (Objects.equals(user.getId(), schedule.getUser().getId())) {
+                scheduleResponse.add(new ScheduleResponseDto(
+                        schedule.getId(),
+                        schedule.getUser().getId(),
+                        schedule.getTitle(),
+                        schedule.getContent(),
+                        schedule.getCreatedAt(),
+                        schedule.getModifiedAt()
+                ));
+            } else {
+                scheduleResponse.add(new ScheduleResponseDto(
+                        schedule.getId(),
+                        schedule.getTitle(),
+                        schedule.getContent(),
+                        schedule.getCreatedAt()
+                ));
+            }
         }
         return scheduleResponse;
     }
@@ -127,26 +127,39 @@ public class ScheduleService {
      * from schedule
      * where id=?
      */
-    // 일정 단건 조회
-    // 단건 조회에 굳이? 유저 아이디가 필요할까? 일정 조회할 때는 검증을 제외하도록 하자
+// 일정 단건 조회
+// 단건 조회에 본인 글이면 댓글까지 보이게 타인의 글이면 댓글이 안보이게 - 여기서 삭제된 유저의 일정이라면 출력 하지 않는다..
     @Transactional(readOnly = true)
-    public ScheduleResponseDto findById(Long id) {
+    public ScheduleResponseDto findById(Long userId, Long id) {
         // 입력한 게시글의 아이디가 존재하지 않을 때
         Schedule schedule = scheduleRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("찾을 수 없는 게시글입니다.")
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "일정을 찾을 수 없습니다.")
         );
-        if (schedule.getUser().isDeleted()) { // 삭제된 아이디라면..
-            throw new IllegalStateException("일정을 조회할 수가 없습니다.");
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "일정을 찾을 수 없습니다.")
+        );
+        // softDelete가 true라면 일정을 조회할 수 없다. 삭제된 유저의 일정은 조회할 수 없다.
+        if (schedule.getUser().isDeleted() || schedule.isDeleted()) { // 일정의 유저의 삭제여부를 확인해야 한다..
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 일정을 조회할 수 없습니다.");
         }
 
-        return new ScheduleResponseDto(
-                schedule.getId(),
-                schedule.getUser().getId(),
-                schedule.getTitle(),
-                schedule.getContent(),
-                schedule.getCreatedAt(),
-                schedule.getModifiedAt()
-        );
+        if (Objects.equals(user.getId(), schedule.getUser().getId())) {
+            return new ScheduleResponseDto(
+                    schedule.getId(),
+                    schedule.getUser().getId(),
+                    schedule.getTitle(),
+                    schedule.getContent(),
+                    schedule.getCreatedAt(),
+                    schedule.getModifiedAt()
+            );
+        } else {
+            return new ScheduleResponseDto(
+                    schedule.getId(),
+                    schedule.getTitle(),
+                    schedule.getContent(),
+                    schedule.getCreatedAt()
+            );
+        }
     }
 
     /**
@@ -170,29 +183,24 @@ public class ScheduleService {
      더티체킹이란 영속성 컨텍스트가 관리하는 엔티티의 변경 사항을 감지하고, 트랜잭션이 끝날 때 자동으로 DB에 반영하는 것이다.
      DB에 update sql을 날려 실제 테이블의 데이터까지 갱신한다는 것이 핵심!!
     */
-    // 일정 수정
+// 일정 수정 - 본인 일정만 수정 가능
     public ScheduleResponseDto update(Long userId, Long id, ScheduleRequestDto scheduleRequestDto) {
-
-        User user = userRepository.findById(userId).orElseThrow( // 유저 객체를 생성 후 유저 repository에 있는 유저의 정보를 가져온다.
-                () -> new IllegalArgumentException("해당 유저는 존재하지 않습니다!") // 없다면 예외 처리
-        );
-
-        if (user.isDeleted()) { // 삭제된 유저라면...
-            throw new IllegalStateException("해당 게시글은 존재하지 않습니다.");
-        }
         // 입력한 게시글의 아이디가 존재하지 않을 때
         Schedule schedule = scheduleRepository.findById(id).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "찾을 수 없는 게시글입니다.")
         );
 
         if (!Objects.equals(userId, schedule.getUser().getId())) {
-            throw new IllegalArgumentException("해당 일정의 작성자가 아님으로 수정할 수 없습니다!");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 일정의 작성자가 아님으로 수정할 수 없습니다!");
         }
 
         schedule.updateSchedule(
                 scheduleRequestDto.getTitle(),
                 scheduleRequestDto.getContent()
         );
+
+        scheduleRepository.save(schedule); // save의 merge 기능 활용
+
         return new ScheduleResponseDto(
                 schedule.getId(),
                 schedule.getUser().getId(),
@@ -220,21 +228,33 @@ public class ScheduleService {
      * from schedule
      * where id=?;
      */
-    // 일정 삭제
+    // 일정 삭제 - 삭제가 이미 되어있는 상태라면 예외 처리
     public void deleteSchedule(Long userId, Long id) {
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new IllegalArgumentException("존재하지 않는 유저입니다!")
-        );
-        if (user.isDeleted()) { // 삭제된 유저라면...
-            throw new IllegalStateException("해당 게시글은 존재하지 않습니다.");
-        }
         Schedule schedule = scheduleRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("존재하지 않는 일정입니다!")
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "찾을 수 없는 게시글입니다.")
         );
         if (!Objects.equals(userId, schedule.getUser().getId())) {
-            throw new IllegalArgumentException("작성한 유저가 아니라 삭제가 불가능합니다!");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 일정의 작성자가 아님으로 수정할 수 없습니다!");
         }
-//        scheduleRepository.deleteByUserIdAndId(userId, id);
+        if (schedule.isDeleted()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "찾을 수 없는 게시글입니다.");
+        }
+        //        scheduleRepository.deleteByUserIdAndId(userId, id);
         schedule.softDelete(); // boolean 값을 true로 변환
+        scheduleRepository.save(schedule); // save의 merge 기능 활용
+    }
+
+    // 일정 복원
+    public void restoreSchedule(Long userId, Long id) {
+        Schedule schedule = scheduleRepository.findById(id).orElseThrow( // pk 값을 복구키 활용
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "찾을 수 없는 게시글입니다.")
+        );
+        // 일정의 유니크 값을 만들지 않아서 pk로 대체 하였고, 로그인 유저가 일정을 작성했던 유저라면 일정을 복원할 수 있다.
+        // 로그인을 결국 해야하기에 회원 탈퇴나 로그인 상태가 아니라면 예외처리가 된다.
+        if (!schedule.isDeleted() && Objects.equals(userId, schedule.getUser().getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제된 일정이 아닙니다.");
+        }
+        schedule.restore();
+        scheduleRepository.save(schedule);
     }
 }

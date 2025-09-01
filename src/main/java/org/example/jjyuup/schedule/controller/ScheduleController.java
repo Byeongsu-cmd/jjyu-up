@@ -2,6 +2,7 @@ package org.example.jjyuup.schedule.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.jjyuup.common.consts.Const;
 import org.example.jjyuup.schedule.dto.ScheduleRequestDto;
 import org.example.jjyuup.schedule.dto.ScheduleResponseDto;
 import org.example.jjyuup.schedule.service.ScheduleService;
@@ -13,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor // final 필드의 생성자 생성하는 기능 밖에 없다.
-@RequestMapping("/users")
+@RequestMapping("/schedules")
 public class ScheduleController {
     private final ScheduleService scheduleService;
 
@@ -31,48 +32,64 @@ public class ScheduleController {
 //    public ScheduleController(){
 //    }
 
-    @PostMapping("/{userId}/schedules")
+    // 일정 등록
+    @PostMapping
     public ResponseEntity<ScheduleResponseDto> save(
-            @PathVariable Long userId,
+            @SessionAttribute(name = Const.SESSION_KEY) Long userId, // 로그인 세션 키
             @Valid @RequestBody ScheduleRequestDto scheduleRequestDto
     ) {
         // 201 상태코드
-        return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.save(userId,scheduleRequestDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.save(userId, scheduleRequestDto));
     }
 
-    @GetMapping("/schedules")
+    // 일정 전체 조회
+    @GetMapping
     public ResponseEntity<List<ScheduleResponseDto>> findAll(
-            @RequestParam(required = false) Long userId // 있을 수도 있고 없을 수도 있다.
+            @SessionAttribute(name = Const.SESSION_KEY) Long userId // 로그인 세션 키
     ) {
         // 200 상태코드
         return ResponseEntity.ok(scheduleService.findAll(userId));
     }
 
-    @GetMapping("/schedules/{scheduleId}")
+    // 일정 단건 조회
+    @GetMapping("/{scheduleId}")
     public ResponseEntity<ScheduleResponseDto> findById(
+            @SessionAttribute(name = Const.SESSION_KEY) Long userId, // 로그인 세션 키
             @PathVariable Long scheduleId
     ) {
         // 200 상태코드
-        return ResponseEntity.ok(scheduleService.findById(scheduleId));
+        return ResponseEntity.ok(scheduleService.findById(userId, scheduleId));
     }
 
-    @PutMapping("/{userId}/schedules/{scheduleId}")
+    // 일정 수정
+    @PutMapping("/{scheduleId}")
     public ResponseEntity<ScheduleResponseDto> update(
-            @PathVariable Long userId,
+            @SessionAttribute(name = Const.SESSION_KEY) Long userId, // 로그인 세션 키
             @PathVariable Long scheduleId,
             @Valid @RequestBody ScheduleRequestDto scheduleRequestDto
-    ){
+    ) {
         // 200 상태코드
-        return ResponseEntity.ok(scheduleService.update(userId,scheduleId, scheduleRequestDto));
+        return ResponseEntity.ok(scheduleService.update(userId, scheduleId, scheduleRequestDto));
     }
 
-    @DeleteMapping("/{userId}/schedules/{scheduleId}")
+    // 일정 삭제
+    @DeleteMapping("/{scheduleId}")
     public ResponseEntity<Void> deleteSchedule(
-            @PathVariable Long userId,
+            @SessionAttribute(name = Const.SESSION_KEY) Long userId, // 로그인 세션 키
+            @PathVariable Long scheduleId
+    ) {
+        scheduleService.deleteSchedule(userId, scheduleId);
+        // 204 상태코드
+        return ResponseEntity.noContent().build();
+    }
+
+    // 일정 복원
+    @PostMapping("/{scheduleId}")
+    public ResponseEntity<Void> restoreSchedule(
+            @SessionAttribute(name = Const.SESSION_KEY) Long userId, // 로그인 세션 키
             @PathVariable Long scheduleId
     ){
-        scheduleService.deleteSchedule(userId,scheduleId);
-        // 204 상태코드
+        scheduleService.restoreSchedule(userId, scheduleId);
         return ResponseEntity.noContent().build();
     }
 }
