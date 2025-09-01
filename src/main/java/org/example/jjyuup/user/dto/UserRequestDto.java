@@ -17,7 +17,7 @@ public class UserRequestDto {
     private String name;
 
     @NotBlank(message = "이메일을 입력해 주세요!")
-    @Email(regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$",message = "이메일 형식에 맞춰주세요!") // 이메일 어노테이션만 붙인다면
+    @Email(regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$", message = "이메일 형식에 맞춰주세요!") // 이메일 어노테이션만 붙인다면
     private String email;
 
     @NotBlank(message = "비밀번호를 입력해 주세요!")

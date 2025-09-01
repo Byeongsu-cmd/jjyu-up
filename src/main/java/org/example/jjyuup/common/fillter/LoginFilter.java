@@ -18,7 +18,7 @@ public class LoginFilter implements Filter {
      *  상수화 변수명은 대문자와 띄어쓰기는 _ 이렇게 작성하는 것이 관례
      *  인증을 하지 않는 URL Path 배열
      */
-    private static final String[] WHITE_LIST = {"/signup","/login"};
+    private static final String[] WHITE_LIST = {"/signup","/login","/restoreUsers"};
 
     @Override // 필러를 implements를 하기 때문에 필수로 구현해야한다.
     public void doFilter(

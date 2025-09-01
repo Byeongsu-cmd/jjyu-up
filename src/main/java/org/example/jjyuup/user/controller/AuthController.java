@@ -51,4 +51,13 @@ public class AuthController {
         }
         return ResponseEntity.ok().build();
     }
+
+    // 삭제된 유저 정보 복원
+    @PostMapping("/restoreUsers")
+    public ResponseEntity<Void> restore(
+            @Valid @RequestBody UserLoginRequestDto userLoginRequestDto
+    ) {
+        userService.restore(userLoginRequestDto);
+        return ResponseEntity.ok().build();
+    }
 }

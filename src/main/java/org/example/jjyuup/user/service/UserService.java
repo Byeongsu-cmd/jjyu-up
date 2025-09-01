@@ -2,11 +2,13 @@ package org.example.jjyuup.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.jjyuup.common.config.PasswordEncoder;
+import org.example.jjyuup.user.dto.DeleteUserRequest;
 import org.example.jjyuup.user.dto.UserLoginRequestDto;
 import org.example.jjyuup.user.dto.UserRequestDto;
 import org.example.jjyuup.user.dto.UserResponseDto;
 import org.example.jjyuup.user.entity.User;
 import org.example.jjyuup.user.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -44,7 +46,7 @@ public class UserService {
 
         // 이메일 중복 여부를 먼저 파악하고 생성해야하기 때문에 먼저 검증
         if (userRepository.existsByEmail(userRequestDto.getEmail())) {
-            throw new ResponseStatusException(CONFLICT, "유효하지 않은 이메일입니다."); // 409
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "유효하지 않은 이메일입니다."); // 409
         }
 
         // 입력받은 비밀번호를 암호화
@@ -74,7 +76,8 @@ public class UserService {
      * select *
      * from users
      */
-    // 유저 전체 조회 (삭제되지 않은 유저) or 유저명으로 조회
+    // 추후에 매퍼?로 다시 정리해보자!! 추후에 매퍼?로 다시 정리해보자!!추후에 매퍼?로 다시 정리해보자!!추후에 매퍼?로 다시 정리해보자!!추후에 매퍼?로 다시 정리해보자!!추후에 매퍼?로 다시 정리해보자!!
+    // 유저 전체 조회 (삭제되지 않은 유저) or 유저명으로 조회(단건 조회)
     @Transactional(readOnly = true)
     public List<UserResponseDto> findUsers(Long id, String name) {
         List<User> users = userRepository.findByDeletedFalse(); // 회원 상태를 유지하고 있는 유저 리스트
@@ -131,24 +134,20 @@ public class UserService {
      */
     // 유저 정보 수정 - 이메일과 유저명만 변경가능
     public UserResponseDto update(Long id, UserRequestDto userRequestDto) {
-        User user = userRepository.findById(id).orElseThrow( // 이전에 생성이 한 번이라도 되었던 아이디인지 검증
-                () -> new ResponseStatusException(NOT_FOUND, "존재하지 않는 유저입니다.") // 404
+        // 저장된 데이터의 유저와 로그인한 유저가 같은 유저라면
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.CONFLICT, "로그인 정보가 유효하지 않습니다.")
         );
-
-        if (user.isDeleted()) {
-            // 위와 같은 메세지로 출력하는 이유는 보안상 이렇게 통일 시키는 것이 좋을 것 같아서.. 하지만 테스트를 해야하니 뒤에 1을 붙임.
-            throw new ResponseStatusException(NOT_FOUND, "존재하지 않는 유저입니다.1"); // 404
-        }
 
         // 이메일 중복 여부를 먼저 파악하고 생성해야하기 때문에 먼저 검증
         if (userRepository.existsByEmail(userRequestDto.getEmail())) {
-            throw new ResponseStatusException(CONFLICT, "유효하지 않은 이메일입니다."); // 409
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "유효하지 않은 이메일입니다."); // 409
         }
 
         // 입력한 비밀번호가 저장된 비밀번호와 같은 지 검증
         boolean passwordMatch = passwordEncoder.matches(userRequestDto.getPassword(), user.getPassword());
         if (!passwordMatch) {
-            throw new ResponseStatusException(BAD_REQUEST, "비밀번호가 일치하지 않습니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다.");
         }
 
         // 입력받은 비밀번호를 암호화
@@ -159,6 +158,8 @@ public class UserService {
                 userRequestDto.getEmail(),
                 encodedPassword
         );
+
+        userRepository.save(user);
 
         return new UserResponseDto(
                 user.getId(),
@@ -178,41 +179,50 @@ public class UserService {
      * from users
      * where id=?
      */
-    // 유저 정보 삭제
-    public void deleteById(Long id) {
-        User user = userRepository.findById(id).orElseThrow( // 이전에 생성이 한 번이라도 되었던 아이디인지 검증
-                () -> new ResponseStatusException(NOT_FOUND, "존재하지 않는 유저입니다.") // 404
+    // 유저 정보 삭제 - 비밀번호 검증를 입력 받아 한 번 더 검증! - 삭제하고 자동 로그아웃 실행하도록
+    public void delete(Long id, DeleteUserRequest deleteUserRequest) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.CONFLICT, "로그인 정보가 유효하지 않습니다.")
         );
-        if (user.isDeleted()) {
-            // 위와 같은 메세지로 출력하는 이유는 보안상 이렇게 통일 시키는 것이 좋을 것 같아서.. 하지만 테스트를 해야하니 뒤에 1을 붙임.
-            throw new ResponseStatusException(NOT_FOUND, "존재하지 않는 유저입니다.1"); // 404
+        if (!passwordEncoder.matches(deleteUserRequest.getPassword(), user.getPassword())) { // 입력한 비밀번호 검증
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다!");
         }
         user.softDelete(); // deleted = true
         userRepository.save(user); // DB에 boolean 값 적용
     }
 
-    // 삭제된 유저 정보 복원
-    public void restore(Long id) {
-        User user = userRepository.findById(id).orElseThrow( // 이전에 생성이 한 번이라도 되었던 아이디인지 검증
-                () -> new ResponseStatusException(NOT_FOUND, "존재하지 않는 유저입니다.") // 404
-        );
+    // 삭제된 유저 정보 복원 - 본인이라는 검증이 필요하다... 복원 키로 뭘 주는 것이 좋을까? 일단 수정하지 못하게 한 비밀번호로 검증하는 것이 좋을 것 같긴하다...
+    public void restore(UserLoginRequestDto userLoginRequestDto) {
+        User user = userRepository.findByEmail(userLoginRequestDto.getEmail());
+        // 이메일은 유니크하니 이메일로 유저 분류
+        if (!Objects.equals(user.getEmail(), userLoginRequestDto.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "입력한 정보가 일치하지 않습니다.");
+        }
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(userLoginRequestDto.getPassword(), user.getPassword())) { // 입력한 비밀번호 검증
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다!");
+        }
+        // 삭제 컬럼의 boolean 값을 false 변환하여 유저 정보를 복원한다.
         if (user.isDeleted()) {
             user.restore(); // 엔티티에 있는 restore 메서드를 호출하여 boolean 값을 false로 변환
             //아래의 코드를 작성하지 않으면 더티체킹
             //userRepository.save(user); // 변경된 정보 저장 (save의 merge 기능을 활용하여 적용할 수 있다.)
         } else {
-            throw new ResponseStatusException(BAD_REQUEST, "삭제된 유저가 아닙니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제된 유저가 아닙니다.");
         }
     }
 
     // 로그인
     public UserResponseDto login(UserLoginRequestDto userLoginRequestDto) {
         User user = userRepository.findByEmail(userLoginRequestDto.getEmail());
+        if (user.isDeleted()) { // 삭제된 유저라면..
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "아이디 혹은 비밀번호가 일치하지 않습니다.");
+        }
         if (!Objects.equals(user.getEmail(), userLoginRequestDto.getEmail())) {
-            throw new ResponseStatusException(BAD_REQUEST, "아이디 혹은 비밀번호가 일치하지 않습니다!");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디 혹은 비밀번호가 일치하지 않습니다!");
         }
         if (!passwordEncoder.matches(userLoginRequestDto.getPassword(), user.getPassword())) {
-            throw new ResponseStatusException(BAD_REQUEST, "아이디 혹은 비밀번호가 일치하지 않습니다!");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디 혹은 비밀번호가 일치하지 않습니다!");
         }
 
         return new UserResponseDto(

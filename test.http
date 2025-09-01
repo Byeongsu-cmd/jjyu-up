@@ -3,7 +3,7 @@ POST http://localhost:8080/signup
 Content-Type: application/json
 
 {
-  "name": "엠씨지나",
+  "name": "엠씨병수",
   "email": "MZ11@jjyu.up",
   "password": "Abcd+234"
 }
@@ -21,44 +21,52 @@ Content-Type: application/json
 POST http://localhost:8080/logout
 
 ### 유저 전체 조회 or 유저명 조회 (단건 조회)
-GET http://localhost:8080/users?name=엠씨지나
+GET http://localhost:8080/users
 
 ### 유저 정보 수정
-PUT http://localhost:8080/users/3
+PUT http://localhost:8080/users
 Content-Type: application/json
 
 {
   "name": "두부1",
-  "email": "tofu11111@jjyu.up",
+  "email": "MZ2212@jjyu.up",
   "password": "Abcd+234"
 }
 
 ### 유저 정보 삭제
-DELETE http://localhost:8080/users/4
-
-
-### 삭제된 유저 정보 복원
-POST http://localhost:8080/users/4/restoreUsers
-
-------------------------------------------------------------------------------------------
-
-### 게시글 등록
-POST http://localhost:8080/users/1/schedules
+POST http://localhost:8080/users
 Content-Type: application/json
 
 {
-  "title": "좋은 아침1",
+  "password": "Abcd+234"
+}
+
+### 삭제된 유저 정보 복원
+POST http://localhost:8080/restoreUsers
+Content-Type: application/json
+
+{
+  "email": "MZ11111@jjyu.up",
+  "password": "Abcd+234"
+}
+
+### 일정 등록
+POST http://localhost:8080/schedules
+Content-Type: application/json
+
+{
+  "title": "좋은 아침12",
   "content": "안녕하세요"
 }
 
-### 게시글 전체 조회
-GET http://localhost:8080/users/schedules?userId=7
+### 일정 전체 조회 - 자신의 일정만 조회(내 일정 전체 조회)
+GET http://localhost:8080/schedules
 
-### 게시글 단건 조회
-GET http://localhost:8080/users/schedules/2
+### 일정 단건 조회 - 단건이니 ....
+GET http://localhost:8080/schedules/1
 
-### 게시글 수정
-PUT http://localhost:8080/users/7/schedules/1
+### 일정 수정
+PUT http://localhost:8080/schedules/2
 Content-Type: application/json
 
 {
@@ -66,5 +74,5 @@ Content-Type: application/json
   "content": "안녕하세요"
 }
 
-### 게시글 삭제
-DELETE http://localhost:8080/users/1/schedules/1
+### 일정 삭제
+DELETE http://localhost:8080/schedules/1
