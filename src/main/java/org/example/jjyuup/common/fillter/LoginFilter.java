@@ -11,9 +11,9 @@ import org.springframework.util.PatternMatchUtils;
 
 import java.io.IOException;
 
-@Slf4j
+ @Slf4j // SLF4j 인터페이스 기반으로 자동으로 log 객체를 생성해준다.
+// private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LoginFilter.class);
 public class LoginFilter implements Filter {
-
     /**
      *  상수화 변수명은 대문자와 띄어쓰기는 _ 이렇게 작성하는 것이 관례
      *  인증을 하지 않는 URL Path 배열
@@ -22,22 +22,34 @@ public class LoginFilter implements Filter {
 
     @Override // 필러를 implements를 하기 때문에 필수로 구현해야한다.
     public void doFilter(
-            ServletRequest request,
-            ServletResponse response,
-            FilterChain chain
+            ServletRequest request, // 클라이언트가 서버로 보낸 요청정보를 담고 있다. (url, 파라미터, 바디)
+            ServletResponse response, // 서버가 클라이언트로 응답을 보낼 때 사용한다.(HTML, JSON)
+            FilterChain chain // 여러개의 필터가 있을 때, 필터들을 연결해서 순차적으로 실행할 수 있도록 도와준다.
     ) throws IOException, ServletException{
 
         /**
-         * 다양한 기능을 사용하기 위해 다운 캐스팅
+         * 아래와 같이 다양한 기능을 사용하기 위해 다운 캐스팅
+         * getMethod() : Http 메서드 확인
+         * getHeader("Authorization") : 요청 헤더 조회
+         * getCookies() : 쿠키 정보 가져오기
+         * getSession() : 세션 객체 접근
+         * getRequestURI() : 요청 uri 확인
          */
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String uri = httpRequest.getRequestURI();
 
         /**
          * 다양한 기능을 사용하기 위해 다운 캐스팅
+         * setStatus(int sc) : 응답 상태 코드 설정
+         * setHeader(String name, String value) : 응답 헤더 추가
+         * sendRedirect(String location) : 클라이언트를 다른 url로 리다이렉트
+         * setContentType(String type) : 응답의 MIME 차입 설정(application/json)
+         * getWriter() : 텍스트 기반 응답 출력
+         * getOutputStream() : 바이너리 응답 출력(파일, 이미지 등)
          */
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
+        // log는 Logger 객체 info는 정보성 메세지 출력할 때 사용
         log.info("로그인 필터 실행");
 
         /**
@@ -48,8 +60,13 @@ public class LoginFilter implements Filter {
         if(!isWhiteList(uri)){
 
             /**
-             * 세션이 존재한다면 세션을 가져온다.
+             * false 일 때 상황 세션이 존재한다면 세션을 가져온다.
              * 없다면 session = null
+             *
+             * HttpSession session = httpRequest.getSession();
+             * 그래서 로그인 처리할 때 세션을 생성하니 이것을 사용한다.
+             * 만약 true로 설정하면 세션이 존재한다면 세션을 가져온다.
+             * 세션이 없다면 null이 아닌 새로 생성
              */
             HttpSession session = httpRequest.getSession(false);
 

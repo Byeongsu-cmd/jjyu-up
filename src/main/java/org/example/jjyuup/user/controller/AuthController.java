@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController
-@RequiredArgsConstructor
+@RestController//@ResponseBody + Controller
+@RequiredArgsConstructor // final로 선언된
 public class AuthController {
 
     private final UserService userService;

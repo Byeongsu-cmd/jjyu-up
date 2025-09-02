@@ -7,10 +7,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 
-@Configuration
+@Configuration // spring의 자바 기반 설정 클래스다.
 public class WebConfig {
 
-    @Bean
+    @Bean /* 인스턴스화 된 객체, 스프링 컨테이너에 등록된 객체 new 키워드 대신에 사용한다.
+            사용하는 이유는 스프링 간 객체가 의존관계를 관리하도록 하는 것이 가장 큰 이유
+           */
     public FilterRegistrationBean loginFilter() {
         FilterRegistrationBean<Filter> filterRegistrationBean = new FilterRegistrationBean<>();
         filterRegistrationBean.setFilter(new LoginFilter()); // filter 등록

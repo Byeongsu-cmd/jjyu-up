@@ -72,18 +72,35 @@ public class ScheduleService {
     }
 
     /**
-     * 유저 아이디 값을 받았을 경우
-     * select *
-     * from users
-     * where id=?
-     * <p>
-     * select *
-     * from schedules s left join users u on s.id = u.id
-     * where u.id = ?;
-     * <p>
-     * 유저 아이디 값이 없을 경우
-     * select *
-     * from schedules
+     * 모든 일정 조회(삭제 되지않은 일정)
+     * Hibernate:
+     *     select
+     *         s1_0.id,
+     *         s1_0.content,
+     *         s1_0.created_at,
+     *         s1_0.deleted,
+     *         s1_0.modified_at,
+     *         s1_0.title,
+     *         s1_0.user_id
+     *     from
+     *         schedules s1_0
+     *     where
+     *         not(s1_0.deleted)
+     *
+     *  사용자의 아이디로 조회
+     *  Hibernate:
+     *     select
+     *         u1_0.id,
+     *         u1_0.created_at,
+     *         u1_0.deleted,
+     *         u1_0.email,
+     *         u1_0.modified_at,
+     *         u1_0.name,
+     *         u1_0.password
+     *     from
+     *         users u1_0
+     *     where
+     *         u1_0.id=?
      */
     // 일정 전체 조회  - 자신정보 모두 표시 남의 일정은 null로 설정, 삭제된 유저의 일정은 조회되지 않는다.
     @Transactional(readOnly = true)
@@ -123,8 +140,14 @@ public class ScheduleService {
     }
 
     /**
+     * 일정 검증
      * select *
      * from schedule
+     * where id=?
+     *
+     * 유저 검증
+     * select *
+     * from users
      * where id=?
      */
 // 일정 단건 조회
@@ -164,19 +187,19 @@ public class ScheduleService {
 
     /**
      * select *
-     * from users
-     * where id=?;
-     * <p>
-     * select *
      * from schedules
      * where id=?;
      * <p>
-     * update schedules
-     * set content=?, // 업데이트 할 내용을 작성
-     * modified_at=?,
-     * title=?
-     * user_id=?
-     * where id=? // 일정 아이디
+     * update
+     *      schedules
+     * set
+     *      content=?, // 업데이트 할 내용을 작성
+     *      deleted=?,
+     *      modified_at=?,
+     *      title=?
+     *      user_id=?
+     * where
+     *      id=? // 일정 아이디
      */
 
     /*
@@ -212,21 +235,33 @@ public class ScheduleService {
     }
 
     /**
-     * select *
-     * from users
-     * where id=?;
-     * <p>
-     * select *
-     * from schedules
-     * where id=?;
-     * <p>
-     * select *
-     * from schedules s left join users u on s.id = u.id
-     * where u.id = ? and s.id
-     * <p>
-     * delete
-     * from schedule
-     * where id=?;
+     *  일정은 일정아이디(PK) 값으로 조회
+     *  Hibernate:
+     *     select
+     *         s1_0.id,
+     *         s1_0.content,
+     *         s1_0.created_at,
+     *         s1_0.deleted,
+     *         s1_0.modified_at,
+     *         s1_0.title,
+     *         s1_0.user_id
+     *     from
+     *         schedules s1_0
+     *     where
+     *         s1_0.id=?
+     *
+     *  삭제를 softDelete로 사용하니 수정 (true로 변환하여 DB에 저장)
+     *  Hibernate:
+     *     update
+     *         schedules
+     *     set
+     *         content=?,
+     *         deleted=?,
+     *         modified_at=?,
+     *         title=?,
+     *         user_id=?
+     *     where
+     *         id=?
      */
     // 일정 삭제 - 삭제가 이미 되어있는 상태라면 예외 처리
     public void deleteSchedule(Long userId, Long id) {
@@ -244,6 +279,35 @@ public class ScheduleService {
         scheduleRepository.save(schedule); // save의 merge 기능 활용
     }
 
+    /**
+     *  일정은 일정아이디(PK) 값으로 조회
+     *  Hibernate:
+     *     select
+     *         s1_0.id,
+     *         s1_0.content,
+     *         s1_0.created_at,
+     *         s1_0.deleted,
+     *         s1_0.modified_at,
+     *         s1_0.title,
+     *         s1_0.user_id
+     *     from
+     *         schedules s1_0
+     *     where
+     *         s1_0.id=?
+     *
+     *  삭제를 softDelete로 사용하니 수정 (false로 변환하여 DB에 저장)
+     *  Hibernate:
+     *     update
+     *         schedules
+     *     set
+     *         content=?,
+     *         deleted=?,
+     *         modified_at=?,
+     *         title=?,
+     *         user_id=?
+     *     where
+     *         id=?
+     */
     // 일정 복원
     public void restoreSchedule(Long userId, Long id) {
         Schedule schedule = scheduleRepository.findById(id).orElseThrow( // pk 값을 복구키 활용

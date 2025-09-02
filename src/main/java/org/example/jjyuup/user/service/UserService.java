@@ -17,15 +17,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static org.springframework.http.HttpStatus.*;
-
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional // 하나의 작업 단위
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
     /**
      * - [ ]  사용자는 생성(회원가입), 조회, 수정, 삭제(탈퇴)할 수 있습니다. ✓
      * - [ ]  유저는 아래와 같은 필드를 가집니다. ✓
@@ -36,14 +33,25 @@ public class UserService {
      */
 
     /**
-     * insert into users
-     * (created_at, email, modified_at, name, password)
-     * values
-     * (?, ?, ?, ?, ?)
+     * 이메일 중복 여부 확인
+     *     select
+     *         u1_0.id
+     *     from
+     *         users u1_0
+     *     where
+     *         u1_0.email=?
+     *     limit
+     *         ?
+     *
+     * insert
+     *     into
+     *         users
+     *         (created_at, deleted, email, modified_at, name, password)
+     *     values
+     *         (?, ?, ?, ?, ?, ?)
      */
     // 회원 가입
     public UserResponseDto create(UserRequestDto userRequestDto) {
-
         // 이메일 중복 여부를 먼저 파악하고 생성해야하기 때문에 먼저 검증
         if (userRepository.existsByEmail(userRequestDto.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "유효하지 않은 이메일입니다."); // 409
@@ -73,10 +81,35 @@ public class UserService {
     }
 
     /**
-     * select *
-     * from users
+     *  전체 조회
+     *  select
+     *        u1_0.id,
+     *        u1_0.created_at,
+     *        u1_0.deleted,
+     *        u1_0.email,
+     *        u1_0.modified_at,
+     *        u1_0.name,
+     *        u1_0.password
+     *   from
+     *         users u1_0
+     *   where
+     *         not(u1_0.deleted)
+     *
+     *     유저명을 파람으로 입력 시
+     * select
+     *         u1_0.id,
+     *         u1_0.created_at,
+     *         u1_0.deleted,
+     *         u1_0.email,
+     *         u1_0.modified_at,
+     *         u1_0.name,
+     *         u1_0.password
+     *     from
+     *         users u1_0
+     *     where
+     *         not(u1_0.deleted)
+     *  둘다 같은 쿼리문이 나간다.
      */
-    // 추후에 매퍼?로 다시 정리해보자!! 추후에 매퍼?로 다시 정리해보자!!추후에 매퍼?로 다시 정리해보자!!추후에 매퍼?로 다시 정리해보자!!추후에 매퍼?로 다시 정리해보자!!추후에 매퍼?로 다시 정리해보자!!
     // 유저 전체 조회 (삭제되지 않은 유저) or 유저명으로 조회(단건 조회)
     @Transactional(readOnly = true)
     public List<UserResponseDto> findUsers(Long id, String name) {
@@ -124,13 +157,43 @@ public class UserService {
     }
 
     /**
-     * update users
-     * set
-     * email=?,
-     * modified_at=?,
-     * name=?,
-     * password=?
-     * where id=?
+     *  사용자 아이디로 전체 조회
+     *  select
+     *         u1_0.id,
+     *         u1_0.created_at,
+     *         u1_0.deleted,
+     *         u1_0.email,
+     *         u1_0.modified_at,
+     *         u1_0.name,
+     *         u1_0.password
+     *     from
+     *         users u1_0
+     *     where
+     *         u1_0.id=?
+     *
+     *  이메일로 사용자 존재 여부 확인
+     * Hibernate:
+     *     select
+     *         u1_0.id
+     *     from
+     *         users u1_0
+     *     where
+     *         u1_0.email=?
+     *     limit
+     *         ?
+     *
+     *  사용자 정보 업데이트
+     * Hibernate:
+     *     update
+     *         users
+     *     set
+     *         deleted=?,
+     *         email=?,
+     *         modified_at=?,
+     *         name=?,
+     *         password=?
+     *     where
+     *         id=?
      */
     // 유저 정보 수정 - 이메일과 유저명만 변경가능
     public UserResponseDto update(Long id, UserRequestDto userRequestDto) {
@@ -171,13 +234,33 @@ public class UserService {
     }
 
     /**
-     * select *
-     * from users
-     * where id=?
-     * <p>
-     * delete
-     * from users
-     * where id=?
+     * 사용자 조회
+     *  Hibernate:
+     *     select
+     *     u1_0.id,
+     *     u1_0.created_at,
+     *     u1_0.deleted,
+     *     u1_0.email,
+     *     u1_0.modified_at,
+     *     u1_0.name,
+     *     u1_0.password
+     *             from
+     *     users u1_0
+     *     where
+     *     u1_0.id=?
+     *
+     *  사용자 정보 수정 (softDelete 라서 deleted가 true로 변환된다.)
+     *     Hibernate:
+     *     update
+     *             users
+     *     set
+     *     deleted=?,
+     *     email=?,
+     *     modified_at=?,
+     *     name=?,
+     *     password=?
+     *     where
+     *     id=?
      */
     // 유저 정보 삭제 - 비밀번호 검증를 입력 받아 한 번 더 검증! - 삭제하고 자동 로그아웃 실행하도록
     public void delete(Long id, DeleteUserRequest deleteUserRequest) {
@@ -191,6 +274,35 @@ public class UserService {
         userRepository.save(user); // DB에 boolean 값 적용
     }
 
+    /**
+     * 사용자 조회 (이메일로 조회)
+     * Hibernate:
+     *     select
+     *         u1_0.id,
+     *         u1_0.created_at,
+     *         u1_0.deleted,
+     *         u1_0.email,
+     *         u1_0.modified_at,
+     *         u1_0.name,
+     *         u1_0.password
+     *     from
+     *         users u1_0
+     *     where
+     *         u1_0.email=?
+     *
+     *  사용자 정보 수정(softDelete 라 false로 변환하여 다시 복원)
+     *  Hibernate:
+     *     update
+     *         users
+     *     set
+     *         deleted=?,
+     *         email=?,
+     *         modified_at=?,
+     *         name=?,
+     *         password=?
+     *     where
+     *         id=?
+     */
     // 삭제된 유저 정보 복원 - 본인이라는 검증이 필요하다... 복원 키로 뭘 주는 것이 좋을까? 일단 수정하지 못하게 한 비밀번호로 검증하는 것이 좋을 것 같긴하다...
     public void restore(UserLoginRequestDto userLoginRequestDto) {
         User user = userRepository.findByEmail(userLoginRequestDto.getEmail());
@@ -213,6 +325,20 @@ public class UserService {
         }
     }
 
+    /**
+     * select
+     *         u1_0.id,
+     *         u1_0.created_at,
+     *         u1_0.deleted,
+     *         u1_0.email,
+     *         u1_0.modified_at,
+     *         u1_0.name,
+     *         u1_0.password
+     *     from
+     *         users u1_0
+     *     where
+     *         u1_0.email=?
+     */
     // 로그인
     public UserResponseDto login(UserLoginRequestDto userLoginRequestDto) {
         User user = userRepository.findByEmail(userLoginRequestDto.getEmail());

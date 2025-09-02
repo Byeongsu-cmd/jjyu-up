@@ -16,9 +16,17 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users")
+@RequestMapping("/users") // 이 클래스의 모든 엔드 포인트의 기본 경로를 /users로 묶었다.
 public class UserController {
     private final UserService userService;
+
+    /**
+     * @SessionAttribute 이미 존재하느 세션의 속성을 매서드 파라미터로 바로 주입한다. 세션 값이 없다면 예외 처리
+     * HttpServletRequest request : 세션을 직접 제어하거나, 세션 존재 여부를 확인하고 싶을 때 사용
+     * @RequestParam 기본 값은 true로 필수 값을 받게 설정되지만 (required = false) 를 추가적으로 작성한다면
+     *               필요할 때는 적고 아니라면 적지 않아도 되는 즉, 필수가 아닌 값을 받도록 설정이 된다.
+     * @Valid Dto의 Bean Validation의 제약이 자동으로 검증되게 하는 어노테이션이다.
+     */
 
     // 유저 전체 조회
     @GetMapping
@@ -45,13 +53,30 @@ public class UserController {
             @Valid @RequestBody DeleteUserRequest deleteUserRequest,
             HttpServletRequest request // 세션을 직접 제어하거나, 세션 존재 여부를 확인하고 싶을 때 사용
     ) {
-        // 회원 정보 삭제 (softDelete)
+        // 회원 정보 삭제 (softDelete) 실제로는 삭제하지 않지만 DB에 deleted 값이 true로 변환된다.
         userService.delete(id, deleteUserRequest);
         // 로그아웃
-        HttpSession session = request.getSession(false);
+        HttpSession session = request.getSession(false); // 세션이 없다면 null로 반환
         if (session != null) {
-            session.invalidate();
+            session.invalidate(); // 세션이 존재하면 invalidate로 세션 종료
         }
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build(); // 삭제 후 바디가 없다.. 204
+
+        /**
+         * HttpServletRequest request 이것만 사용하는 경우
+         *
+         * HttpSession session1 = request.getSession(false);
+         * if(session == null){
+         *  예외처리
+         * }
+         * Long id =(Long)session1.getAttribute(Const.SESSION_KEY);
+         * if(id == null){
+         *  예외처리
+         *  }
+         *  userService.delete(id,deleteUserRequest);
+         *  session.invalidate();
+         *  return ResponseEntity.noContent().build();
+         */
+
     }
 }
