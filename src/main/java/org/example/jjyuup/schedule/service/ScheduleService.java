@@ -113,6 +113,8 @@ public class ScheduleService {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "일정을 찾을 수 없습니다.")
         );
+        // 유저정보를 한 번에 먼저 가져오고 조건을 주는 게 더 좋다..
+        // 쿼리메서드를 만드는게 더 효율적이다..
         for (Schedule schedule : schedules) {
             // softDelete가 true라면 일정을 조회할 수 없다. 삭제된 유저의 일정은 조회할 수 없다.
             if (schedule.getUser().isDeleted()) { // 일정의 유저의 삭제여부를 확인해야 한다..

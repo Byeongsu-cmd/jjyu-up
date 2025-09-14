@@ -34,21 +34,21 @@ public class UserService {
 
     /**
      * 이메일 중복 여부 확인
-     *     select
-     *         u1_0.id
-     *     from
-     *         users u1_0
-     *     where
-     *         u1_0.email=?
-     *     limit
-     *         ?
-     *
+     * select
+     * u1_0.id
+     * from
+     * users u1_0
+     * where
+     * u1_0.email=?
+     * limit
+     * ?
+     * <p>
      * insert
-     *     into
-     *         users
-     *         (created_at, deleted, email, modified_at, name, password)
-     *     values
-     *         (?, ?, ?, ?, ?, ?)
+     * into
+     * users
+     * (created_at, deleted, email, modified_at, name, password)
+     * values
+     * (?, ?, ?, ?, ?, ?)
      */
     // 회원 가입
     public UserResponseDto create(UserRequestDto userRequestDto) {
@@ -81,36 +81,43 @@ public class UserService {
     }
 
     /**
-     *  전체 조회
-     *  select
-     *        u1_0.id,
-     *        u1_0.created_at,
-     *        u1_0.deleted,
-     *        u1_0.email,
-     *        u1_0.modified_at,
-     *        u1_0.name,
-     *        u1_0.password
-     *   from
-     *         users u1_0
-     *   where
-     *         not(u1_0.deleted)
-     *
-     *     유저명을 파람으로 입력 시
+     * 전체 조회
      * select
-     *         u1_0.id,
-     *         u1_0.created_at,
-     *         u1_0.deleted,
-     *         u1_0.email,
-     *         u1_0.modified_at,
-     *         u1_0.name,
-     *         u1_0.password
-     *     from
-     *         users u1_0
-     *     where
-     *         not(u1_0.deleted)
-     *  둘다 같은 쿼리문이 나간다.
+     * u1_0.id,
+     * u1_0.created_at,
+     * u1_0.deleted,
+     * u1_0.email,
+     * u1_0.modified_at,
+     * u1_0.name,
+     * u1_0.password
+     * from
+     * users u1_0
+     * where
+     * not(u1_0.deleted)
+     * <p>
+     * 유저명을 파람으로 입력 시
+     * select
+     * u1_0.id,
+     * u1_0.created_at,
+     * u1_0.deleted,
+     * u1_0.email,
+     * u1_0.modified_at,
+     * u1_0.name,
+     * u1_0.password
+     * from
+     * users u1_0
+     * where
+     * not(u1_0.deleted)
+     * 둘다 같은 쿼리문이 나간다.
      */
-    // 유저 전체 조회 (삭제되지 않은 유저) or 유저명으로 조회(단건 조회)
+    // 동적 쿼리로 하면 간단할 수 있다...  like 쿼리를 사용하는 것이 더 좋을 수 있다 "like %" ("" 이면 전체 조회)
+    // dto를 명확하게 분리하는 것이 더 좋을 것 같다.
+    // 전체 조회니 굳이 리스트에서 목차를 보내줄 때 나눌 필요가?... 단건 조회할 때도 자신의 정보만 조회할 수도 있게하면 좋지않을까?..
+    // stream 공부를 좀 하는 것이 좋을 듯하다..
+    // 먼저 실실적으로 UI 상으로 어떻게 보일지를 고려하여 개발하면 좋을 것 같다.. sns 를 직접 찾아보면서 직관적으로 생각을 해보자!
+    // for 문을 10개일 때보다 2중 for문이 더 비용이 많이 든다.
+    // 페이징은 거의 필수 사용자가 많다면 메모리가 터진다... 슬라이드로 내리는 것도 페이징 처리다!! 버튼으로 구현되어 있는 페이지만 페이징처리가 아니다.
+    // 유저 전체 조회 (삭제되지 않은 유저) or 유저명으로 조회
     @Transactional(readOnly = true)
     public List<UserResponseDto> findUsers(Long id, String name) {
         List<User> users = userRepository.findByDeletedFalse(); // 회원 상태를 유지하고 있는 유저 리스트
@@ -157,43 +164,43 @@ public class UserService {
     }
 
     /**
-     *  사용자 아이디로 전체 조회
-     *  select
-     *         u1_0.id,
-     *         u1_0.created_at,
-     *         u1_0.deleted,
-     *         u1_0.email,
-     *         u1_0.modified_at,
-     *         u1_0.name,
-     *         u1_0.password
-     *     from
-     *         users u1_0
-     *     where
-     *         u1_0.id=?
-     *
-     *  이메일로 사용자 존재 여부 확인
+     * 사용자 아이디로 전체 조회
+     * select
+     * u1_0.id,
+     * u1_0.created_at,
+     * u1_0.deleted,
+     * u1_0.email,
+     * u1_0.modified_at,
+     * u1_0.name,
+     * u1_0.password
+     * from
+     * users u1_0
+     * where
+     * u1_0.id=?
+     * <p>
+     * 이메일로 사용자 존재 여부 확인
      * Hibernate:
-     *     select
-     *         u1_0.id
-     *     from
-     *         users u1_0
-     *     where
-     *         u1_0.email=?
-     *     limit
-     *         ?
-     *
-     *  사용자 정보 업데이트
+     * select
+     * u1_0.id
+     * from
+     * users u1_0
+     * where
+     * u1_0.email=?
+     * limit
+     * ?
+     * <p>
+     * 사용자 정보 업데이트
      * Hibernate:
-     *     update
-     *         users
-     *     set
-     *         deleted=?,
-     *         email=?,
-     *         modified_at=?,
-     *         name=?,
-     *         password=?
-     *     where
-     *         id=?
+     * update
+     * users
+     * set
+     * deleted=?,
+     * email=?,
+     * modified_at=?,
+     * name=?,
+     * password=?
+     * where
+     * id=?
      */
     // 유저 정보 수정 - 이메일과 유저명만 변경가능
     public UserResponseDto update(Long id, UserRequestDto userRequestDto) {
@@ -235,32 +242,32 @@ public class UserService {
 
     /**
      * 사용자 조회
-     *  Hibernate:
-     *     select
-     *     u1_0.id,
-     *     u1_0.created_at,
-     *     u1_0.deleted,
-     *     u1_0.email,
-     *     u1_0.modified_at,
-     *     u1_0.name,
-     *     u1_0.password
-     *             from
-     *     users u1_0
-     *     where
-     *     u1_0.id=?
-     *
-     *  사용자 정보 수정 (softDelete 라서 deleted가 true로 변환된다.)
-     *     Hibernate:
-     *     update
-     *             users
-     *     set
-     *     deleted=?,
-     *     email=?,
-     *     modified_at=?,
-     *     name=?,
-     *     password=?
-     *     where
-     *     id=?
+     * Hibernate:
+     * select
+     * u1_0.id,
+     * u1_0.created_at,
+     * u1_0.deleted,
+     * u1_0.email,
+     * u1_0.modified_at,
+     * u1_0.name,
+     * u1_0.password
+     * from
+     * users u1_0
+     * where
+     * u1_0.id=?
+     * <p>
+     * 사용자 정보 수정 (softDelete 라서 deleted가 true로 변환된다.)
+     * Hibernate:
+     * update
+     * users
+     * set
+     * deleted=?,
+     * email=?,
+     * modified_at=?,
+     * name=?,
+     * password=?
+     * where
+     * id=?
      */
     // 유저 정보 삭제 - 비밀번호 검증를 입력 받아 한 번 더 검증! - 삭제하고 자동 로그아웃 실행하도록
     public void delete(Long id, DeleteUserRequest deleteUserRequest) {
@@ -277,31 +284,31 @@ public class UserService {
     /**
      * 사용자 조회 (이메일로 조회)
      * Hibernate:
-     *     select
-     *         u1_0.id,
-     *         u1_0.created_at,
-     *         u1_0.deleted,
-     *         u1_0.email,
-     *         u1_0.modified_at,
-     *         u1_0.name,
-     *         u1_0.password
-     *     from
-     *         users u1_0
-     *     where
-     *         u1_0.email=?
-     *
-     *  사용자 정보 수정(softDelete 라 false로 변환하여 다시 복원)
-     *  Hibernate:
-     *     update
-     *         users
-     *     set
-     *         deleted=?,
-     *         email=?,
-     *         modified_at=?,
-     *         name=?,
-     *         password=?
-     *     where
-     *         id=?
+     * select
+     * u1_0.id,
+     * u1_0.created_at,
+     * u1_0.deleted,
+     * u1_0.email,
+     * u1_0.modified_at,
+     * u1_0.name,
+     * u1_0.password
+     * from
+     * users u1_0
+     * where
+     * u1_0.email=?
+     * <p>
+     * 사용자 정보 수정(softDelete 라 false로 변환하여 다시 복원)
+     * Hibernate:
+     * update
+     * users
+     * set
+     * deleted=?,
+     * email=?,
+     * modified_at=?,
+     * name=?,
+     * password=?
+     * where
+     * id=?
      */
     // 삭제된 유저 정보 복원 - 본인이라는 검증이 필요하다... 복원 키로 뭘 주는 것이 좋을까? 일단 수정하지 못하게 한 비밀번호로 검증하는 것이 좋을 것 같긴하다...
     public void restore(UserLoginRequestDto userLoginRequestDto) {
@@ -327,18 +334,20 @@ public class UserService {
 
     /**
      * select
-     *         u1_0.id,
-     *         u1_0.created_at,
-     *         u1_0.deleted,
-     *         u1_0.email,
-     *         u1_0.modified_at,
-     *         u1_0.name,
-     *         u1_0.password
-     *     from
-     *         users u1_0
-     *     where
-     *         u1_0.email=?
+     * u1_0.id,
+     * u1_0.created_at,
+     * u1_0.deleted,
+     * u1_0.email,
+     * u1_0.modified_at,
+     * u1_0.name,
+     * u1_0.password
+     * from
+     * users u1_0
+     * where
+     * u1_0.email=?
      */
+    // 커스텀 익셉션도 생각해보자! 예외에 대한 후 처리를 할려면 이것이 유용하다! (도메인 기준으로 나누는 것이 무난하게 좋다!)
+    // 코드 상 예외가 터지면 어디서 예외가 터졌는지 구분하기가 힘들다..
     // 로그인
     public UserResponseDto login(UserLoginRequestDto userLoginRequestDto) {
         User user = userRepository.findByEmail(userLoginRequestDto.getEmail());

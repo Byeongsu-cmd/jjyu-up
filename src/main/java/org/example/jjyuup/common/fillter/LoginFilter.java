@@ -20,6 +20,14 @@ public class LoginFilter implements Filter {
      */
     private static final String[] WHITE_LIST = {"/signup","/login","/restoreUsers"};
 
+    // 항상 "왜??" 라고 생각하고 접근! 방법적으로 접근하지 말자! 방법만 알아선 응용하지 못한다!
+     // 공통으로 처리해야할 사항들을 한 번에 필터링.. 어떻게 구현할지?로 접근 보단 어떤 상황에 사용해야할지? 에 대해 공부하는 것이 더 좋은 접근 방법이다.
+     // 인증 여부 체크(토큰, 세션), IP를 허용/차단, 로깅 : 요청을 빠르게 걸러내거나 표준화 해야할 때! 공통적으로 처리해야할 때!
+     // 언제 사용하면 안되는지, 컨트롤러의 정보가 필요한경우! (X) 도메인 정보나 로직이 필요한 경우 (X)
+
+     // 요청을 처리할 때 어떤 순서로 어떻게 처리하는지 비교 Filter, Interceptor, AOP, ControllerAdvice
+     // Controller 정보를 알아야하는 경우에는 Interceptor 공부해보기!
+
     @Override // 필러를 implements를 하기 때문에 필수로 구현해야한다.
     public void doFilter(
             ServletRequest request, // 클라이언트가 서버로 보낸 요청정보를 담고 있다. (url, 파라미터, 바디)

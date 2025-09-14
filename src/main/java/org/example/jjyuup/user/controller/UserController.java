@@ -22,7 +22,7 @@ public class UserController {
 
     /**
      * @SessionAttribute 이미 존재하느 세션의 속성을 매서드 파라미터로 바로 주입한다. 세션 값이 없다면 예외 처리
-     * HttpServletRequest request : 세션을 직접 제어하거나, 세션 존재 여부를 확인하고 싶을 때 사용
+     * HttpServletRequest 세션을 직접 제어하거나, 세션 존재 여부를 확인하고 싶을 때 사용
      * @RequestParam 기본 값은 true로 필수 값을 받게 설정되지만 (required = false) 를 추가적으로 작성한다면
      *               필요할 때는 적고 아니라면 적지 않아도 되는 즉, 필수가 아닌 값을 받도록 설정이 된다.
      * @Valid Dto의 Bean Validation의 제약이 자동으로 검증되게 하는 어노테이션이다.
@@ -46,7 +46,7 @@ public class UserController {
         return ResponseEntity.ok(userService.update(id, userRequestDto));
     }
 
-    // 유저 정보 삭제
+    // 회원 탈퇴
     @PostMapping
     public ResponseEntity<Void> delete(
             @SessionAttribute(name = Const.SESSION_KEY) Long id, // 컨트롤러 파라미터에서 바로 세션 값을 꺼낼 수 있어서 간결하고 직관적

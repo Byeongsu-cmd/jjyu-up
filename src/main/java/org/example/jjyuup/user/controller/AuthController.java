@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController//@ResponseBody + Controller
-@RequiredArgsConstructor // final로 선언된
+@RequiredArgsConstructor // final로 선언된 필드 생성자 생성
 public class AuthController {
 
     private final UserService userService;
